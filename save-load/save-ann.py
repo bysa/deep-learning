@@ -57,7 +57,7 @@ classifier.fit(X_train, y_train, batch_size = 10, nb_epoch = 10)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
-print(y_pred)
+y_pred = (y_pred > 0.5)
 
 
 # serialize model to JSON
@@ -68,3 +68,30 @@ with open("model.json", "w") as json_file:
 classifier.save_weights("model.h5")
 print("Saved model to disk")
 
+def send_email(result):
+	import smtplib
+	from email.mime.text import MIMEText
+	from email.mime.multipart import MIMEMultipart
+	from info import username, password
+	
+	email = username
+	password = password
+	send_to_email = 'shafighparsazad@gmail.com'
+	subject = 'Resutls'
+	message = str(result)
+	
+	msg = MIMEMultipart()
+	msg['From'] = email
+	msg['To'] = send_to_email
+	msg['Subject'] = subject
+	
+	msg.attach(MIMEText(message, 'plain'))
+	
+	server = smtplib.SMTP('smtp.gmail.com', 587)
+	server.starttls()
+	server.login(email, password)
+	text = msg.as_string()
+	server.sendmail(email, send_to_email, text)
+	server.quit()
+
+send_email(y_pred)
