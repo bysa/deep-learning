@@ -72,6 +72,9 @@ def send_email(result):
 	import smtplib
 	from email.mime.text import MIMEText
 	from email.mime.multipart import MIMEMultipart
+	from email.mime.base import MIMEBase
+	from email import encoders
+	import os.path
 	from info import username, password
 	
 	email = username
@@ -86,6 +89,25 @@ def send_email(result):
 	msg['Subject'] = subject
 	
 	msg.attach(MIMEText(message, 'plain'))
+	# attachment model.json
+	file_location = os.getcwd() + "/model.json"
+	filename = os.path.basename(file_location)
+	attachment = open(file_location, "rb")
+	part = MIMEBase('application', 'octet-stream')
+	part.set_payload((attachment).read())
+	encoders.encode_base64(part)
+	part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+	msg.attach(part)
+	
+	# attachment model.h5
+	file_location = os.getcwd() + "/model.h5"
+	filename = os.path.basename(file_location)
+	attachment = open(file_location, "rb")
+	part = MIMEBase('application', 'octet-stream')
+	part.set_payload((attachment).read())
+	encoders.encode_base64(part)
+	part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+	msg.attach(part)
 	
 	server = smtplib.SMTP('smtp.gmail.com', 587)
 	server.starttls()
