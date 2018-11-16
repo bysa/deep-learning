@@ -52,13 +52,25 @@ classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid'))
 # Compiling the ANN
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
+bs = 5
+epochs = 100
+
 # Fitting the ANN to the Training set
-classifier.fit(X_train, y_train, batch_size = 10, nb_epoch = 10)
+classifier.fit(X_train, y_train, batch_size = bs, nb_epoch = epochs)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
 y_pred = (y_pred > 0.5)
 
+params = {}
+params["batch_size"]=bs
+params["nb_epoch"]=epochs
+
+
+# Making the confusion matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
+cm = confusion_matrix(y_test, y_pred)
+accuracy = accuracy_score(y_test, y_pred)
 
 # serialize model to JSON
 model_json = classifier.to_json()
@@ -68,7 +80,7 @@ with open("model.json", "w") as json_file:
 classifier.save_weights("model.h5")
 print("Saved model to disk")
 
-def send_email(result):
+def send_email(params, accuracy):
 	import smtplib
 	from email.mime.text import MIMEText
 	from email.mime.multipart import MIMEMultipart
@@ -80,8 +92,8 @@ def send_email(result):
 	email = username
 	password = password
 	send_to_email = 'shafighparsazad@gmail.com'
-	subject = 'Resutls'
-	message = str(result)
+	subject = 'Resutls: ' + 'accuracy: ' + str(accuracy)
+	message = str(params)
 	
 	msg = MIMEMultipart()
 	msg['From'] = email
@@ -116,4 +128,4 @@ def send_email(result):
 	server.sendmail(email, send_to_email, text)
 	server.quit()
 
-send_email(y_pred)
+send_email(params, accuracy)
